@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Khám phá một chút</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;overflow:hidden;background:#06081c;color:#f4f1ee;font-family:'Be Vietnam Pro',system-ui,sans-serif}
+#bg{position:fixed;inset:0;width:100%;height:100%}
+.vig{position:fixed;inset:0;background:radial-gradient(ellipse at center,rgba(0,0,0,.05) 30%,rgba(0,0,0,.55) 100%);pointer-events:none}
+main{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(72px + env(safe-area-inset-top,0px)) 28px calc(40px + env(safe-area-inset-bottom,0px));transition:opacity .45s ease,transform .45s ease}
+main.o{opacity:0;transform:translateY(8px)}
+.tag{font-size:.85rem;font-weight:300;letter-spacing:.04em;opacity:.7;margin-bottom:22px}
+.q{font-family:'Newsreader',Georgia,serif;font-size:clamp(1.65rem,4.6vw,3rem);line-height:1.28;max-width:30ch;text-shadow:0 2px 24px rgba(0,0,0,.55)}
+.q.big{font-size:clamp(2.2rem,6vw,4rem)}
+.a{font-family:'Newsreader',Georgia,serif;font-style:italic;font-size:clamp(1.1rem,2.4vw,1.45rem);line-height:1.6;max-width:44ch;margin-top:26px;padding-top:22px;border-top:1px solid rgba(255,255,255,.28);opacity:.92;text-shadow:0 2px 18px rgba(0,0,0,.6);animation:in .8s ease both}
+.hint{font-size:.9rem;font-weight:300;opacity:.6;margin-top:26px;min-height:1.4em}
+@keyframes in{from{opacity:0}to{opacity:.92}}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{margin-top:30px;padding:13px 30px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:1rem;transition:background .25s,opacity .4s}
+.btn:hover:not(:disabled){background:rgba(255,255,255,.2)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn:focus-visible,.cn:focus-visible,input:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.cn{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));padding:9px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.28);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:.88rem;z-index:5}
+#chg{left:18px}#snd{right:18px}
+#pn{position:fixed;right:18px;top:calc(64px + env(safe-area-inset-top,0px));width:230px;padding:16px;border-radius:16px;background:rgba(10,12,30,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.2);z-index:5;text-align:left}
+#pn[hidden],#chg[hidden]{display:none}
+#pn p{font-size:.8rem;opacity:.65;margin-bottom:8px}
+.m{display:block;width:100%;text-align:left;padding:8px 10px;margin-bottom:4px;border-radius:8px;border:1px solid transparent;background:none;font-size:.92rem}
+.m.on{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.12)}
+#vol{width:100%;margin-top:6px;accent-color:#fff}
+@media (prefers-reduced-motion:reduce){main,.a{transition:none;animation:none}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas><div class="vig"></div>
+<button id="chg" class="cn" hidden>Đổi chủ đề</button>
+<button id="snd" class="cn" aria-expanded="false">Âm thanh</button>
+<div id="pn" hidden>
+<p>Chọn âm thanh</p>
+<button class="m" data-m="topic">Theo chủ đề</button>
+<button class="m" data-m="lofi">Nhạc lofi</button>
+<button class="m" data-m="off">Tắt</button>
+<p style="margin-top:12px">Âm lượng</p>
+<input id="vol" type="range" min="0" max="100" value="50" aria-label="Âm lượng">
+</div>
+<main id="st"></main>
+<script>
+const TOPICS={
+space:{name:'Vũ trụ',steps:[
+{q:'Ánh nắng đang chiếu lên da bạn lúc này đã đi mất bao lâu kể từ khi rời khỏi Mặt Trời?',a:'Khoảng 8 phút 20 giây, qua quãng đường chừng 150 triệu km. Nghĩa là bạn luôn nhìn thấy Mặt Trời của 8 phút trước.'},
+{q:'Nếu Mặt Trời biến mất ngay bây giờ, bao lâu sau Trái Đất mới “biết”?',a:'Cũng khoảng 8 phút. Lực hấp dẫn lan truyền với tốc độ ánh sáng, nên trong 8 phút đó Trái Đất vẫn quay theo quỹ đạo cũ như chưa có chuyện gì.'},
+{q:'Nhưng hành trình của ánh sáng còn dài hơn thế nhiều. Theo bạn, một hạt ánh sáng mất bao lâu để thoát từ lõi Mặt Trời ra bề mặt?',a:'Hàng chục nghìn năm hoặc hơn, tùy mô hình ước tính (khoảng 10.000 đến 170.000 năm). Lõi Mặt Trời dày đặc đến mức ánh sáng liên tục va chạm và đi theo đường ngoằn ngoèo.'},
+{q:'Vậy ánh nắng bạn cảm nhận hôm nay thật ra bắt đầu hành trình từ khi nào?',a:'Năng lượng ấy có thể đã sinh ra từ hàng chục nghìn năm trước, khi con người còn sống bằng săn bắt hái lượm. Nó mất rất lâu để thoát ra, rồi chỉ cần 8 phút để đến với bạn.'}]},
+ocean:{name:'Đại dương',steps:[
+{q:'Nơi nào trên đại dương xa đất liền nhất, và xa đến mức nào?',a:'Điểm đó tên là Point Nemo, nằm ở Nam Thái Bình Dương, cách đất liền gần nhất khoảng 2.700 km theo mọi hướng.'},
+{q:'Khi đi ngang qua đó, ai sẽ là người ở gần Point Nemo nhất?',a:'Đôi khi là các phi hành gia trên Trạm Vũ trụ Quốc tế. Họ bay ở độ cao khoảng 400 km, gần hơn bất kỳ người nào trên mặt đất.'},
+{q:'Vì sao người ta chọn đúng nơi hoang vắng này để đưa tàu vũ trụ cũ về “an nghỉ”?',a:'Vì nó quá xa dân cư và các tuyến tàu biển, nên mảnh vỡ rơi xuống gần như không gây rủi ro. Hàng trăm tàu vũ trụ đã kết thúc hành trình ở đây, nên nơi này còn được gọi là nghĩa địa tàu vũ trụ.'},
+{q:'Một vùng biển bị cô lập như thế, theo bạn có nhiều sự sống không?',a:'Rất ít. Vùng này nằm trong một xoáy hải lưu khổng lồ, nước nghèo dưỡng chất, nên sinh vật thưa thớt hơn hầu hết các nơi khác trên đại dương.'}]}};
+const KEYS=Object.keys(TOPICS);
+const P={space:[[[6,8,28],[30,16,70],[130,100,255]],[[4,14,34],[10,52,80],[60,210,225]],[[24,8,24],[80,24,50],[255,125,155]],[[8,8,20],[42,34,72],[255,205,125]]],
+ocean:[[[8,40,70],[2,12,36],[120,220,255]],[[14,60,80],[4,28,50],[160,255,220]],[[40,50,90],[10,18,50],[255,190,170]],[[6,30,50],[2,8,22],[110,160,255]]]};
+let scene='space',pi=0,tgt=P.space[0].map(c=>c.slice()),cur=P.space[0].map(c=>c.slice());
+const cv=document.getElementById('bg'),cx=cv.getContext('2d');let W,H;
+const stars=Array.from({length:150},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.4+.3,t:Math.random()*6,s:Math.random()*.00004+.00001}));
+function rs(){const d=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*d;cv.height=H*d;cx.setTransform(d,0,0,d,0,0)}
+addEventListener('resize',rs);rs();
+const rgb=c=>`${c[0]|0},${c[1]|0},${c[2]|0}`;
+function frame(t){
+for(let i=0;i<3;i++)for(let j=0;j<3;j++)cur[i][j]+=(tgt[i][j]-cur[i][j])*.03;
+const g=cx.createLinearGradient(0,0,0,H);g.addColorStop(0,`rgb(${rgb(cur[0])})`);g.addColorStop(1,`rgb(${rgb(cur[1])})`);cx.fillStyle=g;cx.fillRect(0,0,W,H);
+const gl=cx.createRadialGradient(W*.75,H*.28,0,W*.75,H*.28,Math.min(W,H)*.6);gl.addColorStop(0,`rgba(${rgb(cur[2])},.38)`);gl.addColorStop(1,`rgba(${rgb(cur[2])},0)`);cx.fillStyle=gl;cx.fillRect(0,0,W,H);
+if(scene==='space'){
+for(const s of stars){s.x=(s.x+s.s)%1;const a=.35+.55*Math.abs(Math.sin(t*.0008+s.t));cx.fillStyle=`rgba(255,255,255,${a})`;cx.beginPath();cx.arc(s.x*W,s.y*H,s.r,0,6.3);cx.fill()}
+}else{
+for(let k=0;k<4;k++){cx.beginPath();const y0=H*(.56+k*.1);cx.moveTo(0,H);
+for(let x=0;x<=W;x+=12)cx.lineTo(x,y0+Math.sin(x*.006+t*.0004*(1+k*.3)+k*2)*(14+k*6)+Math.sin(x*.013-t*.0006+k)*6);
+cx.lineTo(W,H);cx.closePath();cx.fillStyle=`rgba(${rgb(cur[2])},${.06+k*.05})`;cx.fill()}
+}
+requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+function shift(){pi=(pi+1)%4;tgt=P[scene][pi].map(c=>c.slice())}
+function setScene(s){scene=s;pi=0;tgt=P[s][0].map(c=>c.slice())}
+
+/* Âm thanh tạo bằng Web Audio, không cần file ngoài */
+let ac,master,nb,bus=null,mode='topic',vol=.5,lt;
+function initAudio(){if(ac){ac.resume();return}
+ac=new(window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=vol;master.connect(ac.destination);
+const n=ac.sampleRate*3;nb=ac.createBuffer(1,n,ac.sampleRate);const d=nb.getChannelData(0);let l=0;
+for(let i=0;i<n;i++){l=(l+.02*(Math.random()*2-1))/1.02;d[i]=l*3.5}}
+function noise(){const s=ac.createBufferSource();s.buffer=nb;s.loop=true;s.start();return s}
+function lfo(f,depth,target,stop){const o=ac.createOscillator();o.frequency.value=f;const d=ac.createGain();d.gain.value=depth;o.connect(d).connect(target);o.start();stop.push(o)}
+function setSound(){if(!ac)return;clearTimeout(lt);
+if(bus){const o=bus;o.g.gain.setTargetAtTime(0,ac.currentTime,.4);setTimeout(()=>o.stop.forEach(s=>{try{s.stop()}catch(e){}}),2200)}
+bus=null;if(mode==='off')return;
+const g=ac.createGain();g.gain.value=0;g.connect(master);g.gain.setTargetAtTime(1,ac.currentTime,.8);
+const stop=[];const b=bus={g,stop};
+if(mode==='lofi')lofi(g,b);else if(scene==='ocean')ocean(g,stop);else space(g,stop)}
+function ocean(g,stop){const s=noise(),f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=700;const w=ac.createGain();w.gain.value=.5;
+lfo(.11,.35,w.gain,stop);s.connect(f).connect(w).connect(g);stop.push(s)}
+function space(g,stop){[55,82.5,110.3].forEach((fr,i)=>{const o=ac.createOscillator();o.frequency.value=fr;const og=ac.createGain();og.gain.value=.18;
+lfo(.05+i*.03,.12,og.gain,stop);o.connect(og).connect(g);o.start();stop.push(o)});
+const s=noise(),f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=200;const ng=ac.createGain();ng.gain.value=.2;s.connect(f).connect(ng).connect(g);stop.push(s)}
+function lofi(g,b){const s=noise(),h=ac.createBiquadFilter();h.type='highpass';h.frequency.value=3500;const cg=ac.createGain();cg.gain.value=.03;s.connect(h).connect(cg).connect(g);b.stop.push(s);
+const C=[[174.6,220,261.6,329.6],[164.8,196,246.9,293.7],[146.8,174.6,220,261.6],[130.8,164.8,196,246.9]],M=[392,440,523.3,659.3];let i=0;
+const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=900;lp.connect(g);
+(function next(){if(bus!==b)return;const t=ac.currentTime;
+C[i%4].forEach(fr=>note(fr,'triangle',t,3.3,.09,lp));
+note(M[Math.random()*4|0],'sine',t+1.2,1.2,.06,lp);if(Math.random()<.6)note(M[Math.random()*4|0],'sine',t+2.2,1,.05,lp);
+i++;lt=setTimeout(next,3400)})()}
+function note(f,type,t,dur,v,out){const o=ac.createOscillator(),e=ac.createGain();o.type=type;o.frequency.value=f;e.gain.setValueAtTime(0,t);e.gain.linearRampToValueAtTime(v,t+.06);e.gain.linearRampToValueAtTime(0,t+dur);o.connect(e).connect(out);o.start(t);o.stop(t+dur+.1)}
+
+/* Luồng khám phá */
+const st=document.getElementById('st'),chg=document.getElementById('chg');
+let key=null,i=0,tm;
+function render(html,after){st.classList.add('o');setTimeout(()=>{st.innerHTML=html;st.classList.remove('o');if(after)after()},400)}
+function renderStart(){render('<p class="q big">Bạn có tò mò không?</p><p class="hint">Mỗi lần bấm là một điều mới về thế giới.</p><button class="btn" id="go">Bắt đầu</button>',()=>document.getElementById('go').onclick=()=>{initAudio();begin(KEYS[Math.random()*KEYS.length|0])})}
+function begin(k){key=k;i=0;setScene(k);setSound();chg.hidden=false;renderQ()}
+function renderQ(){const T=TOPICS[key],s=T.steps[i];
+render(`<p class="tag">${T.name}, câu ${i+1}/${T.steps.length}</p><p class="q">${s.q}</p><p class="hint">Thử đoán trong đầu trước nhé.</p><button class="btn" id="rv" disabled>Nghĩ một chút…</button>`,()=>{
+const b=document.getElementById('rv');clearTimeout(tm);tm=setTimeout(()=>{b.disabled=false;b.textContent='Xem đáp án'},4000);
+b.onclick=()=>{shift();const last=i===T.steps.length-1;
+st.insertAdjacentHTML('beforeend',`<p class="a">${s.a}</p><button class="btn" id="nx">${last?'Kết thúc chủ đề':'Câu tiếp theo'}</button>`);b.remove();
+document.querySelector('.hint').remove();
+document.getElementById('nx').onclick=()=>{shift();i++;last?renderEnd():renderQ()}}})}
+function renderEnd(){render(`<p class="q">Bạn vừa đi hết một hành trình nhỏ về ${TOPICS[key].name.toLowerCase()}.</p><button class="btn" id="mr">Khám phá chủ đề khác</button>`,()=>document.getElementById('mr').onclick=nextTopic)}
+function nextTopic(){clearTimeout(tm);begin(KEYS[(KEYS.indexOf(key)+1)%KEYS.length])}
+chg.onclick=nextTopic;
+const pn=document.getElementById('pn'),sb=document.getElementById('snd');
+sb.onclick=()=>{pn.hidden=!pn.hidden;sb.setAttribute('aria-expanded',!pn.hidden)};
+function marks(){pn.querySelectorAll('.m').forEach(b=>b.classList.toggle('on',b.dataset.m===mode))}
+pn.querySelectorAll('.m').forEach(b=>b.onclick=()=>{mode=b.dataset.m;initAudio();setSound();marks()});
+document.getElementById('vol').oninput=e=>{vol=e.target.value/100;if(master)master.gain.value=vol};
+marks();renderStart();
+</script>
+</body>
+</html>
